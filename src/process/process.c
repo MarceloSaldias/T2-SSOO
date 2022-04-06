@@ -40,6 +40,13 @@ Process* process_init_array(char** args)
   process -> waiting_delay = atoi(args[5]);
   process -> aging = atoi(args[6]);
 
+  // Inicializamos los datos de analítica
+  process -> times_chosen_by_cpu = 0;
+  process -> times_interrupted = 0;
+  process -> turnaround_time = 0;
+  process -> response_time = 0;
+  process -> waiting_time = 0;
+
   // TODO: Confirmar esto
   process -> status = WAITING;
   process -> priority = -1;
