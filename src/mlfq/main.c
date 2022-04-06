@@ -26,16 +26,44 @@ int main(int argc, char const *argv[])
 	printf("Cantidad de procesos: %d\n", input_file->len);
 	printf("Procesos:\n");
 
+
+
 	for (int i = 0; i < input_file->len; ++i)
 	{
-		Process* process = process_init_array(input_file->lines[i]);
-		printf("Proceso %s con pid %d\n", process->name, process->pid);
 		for (int j = 0; j < 7; ++j)
 		{
 			printf("%s ", input_file->lines[i][j]);
 		}
 		printf("\n");
 	}
+	
+	// Acá comienzo la tarea !!
 
+  // Traemos todos los procesos a una cola inicial, solo para almacenar los datos iniciales
+	Queue* initial_q = queue_init(0);
+
+	for (int i = 0; i < input_file->len; ++i)
+	{
+		Process* new_process = process_init_array(input_file->lines[i]);
+		queue_append(initial_q, new_process);
+	}
+
+	// Podemos verificar que están los mismos procesos que se printean arriba
+	queue_print(initial_q);
+
+	// Cola de mayor prioridad
+	Queue* high_prio_q = queue_init((int) 2 * q);
+	// Cola de media prioridad
+	Queue* mid_prio_q = queue_init((int) 1 * q);
+	// Cola de baja prioridad
+	Queue* low_prio_q = queue_init(0);
+
+	// Tiempo de la simulación
+	//int curr_time = 0;
+
+	queue_destroy(initial_q);
+	queue_destroy(high_prio_q);
+	queue_destroy(mid_prio_q);
+	queue_destroy(low_prio_q);
 	input_file_destroy(input_file);
 }
