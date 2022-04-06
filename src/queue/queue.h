@@ -12,7 +12,7 @@ typedef struct node
   /** Puntero al nodo siguiente */
   struct node* next;
   /** Numero almacenado en el nodo */
-  Process process;
+  Process* process;
 } Node;
 
 /** Estructura de una lista ligada. Referencia a los extremos y mantiene un
@@ -35,10 +35,10 @@ typedef struct queue
 Queue* queue_init(int quantum);
 
 /** Funcion que agrega un elemento al final de la cola */
-void queue_append(Queue* queue, Process process);
+void queue_append(Queue* queue, Process* process);
 
 /** Funcion que obtiene el valor de la cola en la posicion dada */
-Process queue_get(Queue* queue, int position);
+Process* queue_get(Queue* queue, int position);
 
 /** Funcion que destruye la cola liberando la memoria utilizada */
 void queue_destroy(Queue* queue);

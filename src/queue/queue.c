@@ -17,7 +17,7 @@
 // lista ligada pero no se va a llamar desde el programa principal
 
 /** Funcion que crea un nodo de la cola a partir de un valor */
-static Node* node_init(Process value)
+static Node* node_init(Process* value)
 {
   // Pido la memoria para el nodo
   Node* node = malloc(sizeof(Node));
@@ -27,7 +27,7 @@ static Node* node_init(Process value)
   node -> next = NULL;
 
   // Le doy el valor correspondiente
-  node -> value = value;
+  node -> process = value;
 
   // Retorno el nodo
   return node;
@@ -65,7 +65,7 @@ Queue* queue_init(int quantum)
 }
 
 /** Funcion que agrega un elemento al final de la cola */
-void queue_append(Queue* queue, Process process)
+void queue_append(Queue* queue, Process* process)
 {
   // Primero creo un nodo nuevo
   Node* node = node_init(process);
@@ -93,13 +93,13 @@ void queue_append(Queue* queue, Process process)
 }
 
 /** Funcion que obtiene el valor de la cola en la posicion dada */
-Process queue_get(Queue* queue, int position)
+Process* queue_get(Queue* queue, int position)
 {
   // Si no hay suficientes nodos, hago un error
   if (position >= queue -> count)
   {
     printf("Error, el indice al que estas accediendo supera el largo de la cola\n");
-¡    exit(1);
+    exit(1);
   }
 
   // Me muevo por los nodos hasta encontrar la posicion que busco
@@ -110,7 +110,7 @@ Process queue_get(Queue* queue, int position)
   }
 
   // Retoro el valor del nodo correspondiente
-  return actual -> value;
+  return actual -> process;
 }
 
 /** Funcion que destruye la lista ligada liberando la memoria utilizada */
