@@ -41,6 +41,7 @@ static void nodes_destroy(Node* node)
   if (node)
   {
     nodes_destroy(node -> next);
+    process_destroy(node->process);
     free(node);
   }
 }
