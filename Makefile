@@ -45,10 +45,10 @@ LIB=$(MTH)
 ###############################################################################
 
 # Directorios con elementos de uso común
-COMMON=file_manager process
+COMMON=file_manager process queue
 
 # Directorios que serán compilados a un programa
-PROGRAMS=mlfq queue
+PROGRAMS=mlfq
 
 # Todos los directorios que contienen archivos de código
 SRCDIR=$(COMMON) $(PROGRAMS)
