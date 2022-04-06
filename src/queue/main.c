@@ -1,13 +1,11 @@
-/** Módulo estándar de Input y Output */
+// Libreria estandar de c
+#include <stdlib.h>
+// Liberia de input y output
 #include <stdio.h>
-/** Módulo estándar de números enteros */
-#include <stdint.h>
-/** Módulo estándar de valores booleanos */
-#include <stdbool.h>
 
-// Archivo de colas
+// Importamos el archivo .h correspondiente
 #include "queue.h"
-// Archivo de procesos
+// Importamos las definiciones de process
 #include "../process/process.h"
 
 int main()
@@ -20,17 +18,25 @@ int main()
   // Creo la cola con la prioridad
   Queue* q = queue_init(2);
 
-  // Agrego 10 procesos a la cola 
-  for (int i = 0; i < 10; i++)
-  {
-    // TODO: Funciones de creación de procesos
-    queue_append(q, i);
-  }
+  Process* p1 = process_init(1, "Test", 2, RUNNING, 2);
+  Process* p2 = process_init(2, "Test2", 2, RUNNING, 2);
+  Process* p3 = process_init(3, "Test3", 2, RUNNING, 2);
 
-  // Imprimo el proceso de la posicion 5
-  Process pos_5 = queue_get(queue, 5);
-  printf("El nombre del proceso en la posicion %d es %s\n", 5, pos_5 -> name);
+  queue_append(q, p1);
+  queue_append(q, p2);
+  queue_append(q, p3);
+  
+  Process* pos_0 = queue_get(q, 0);
+  Process* pos_1 = queue_get(q, 1);
+  Process* pos_2 = queue_get(q, 2);
 
+  printf("El nombre del proceso en la posición 0 es %s\n", pos_0->name);
+  printf("El nombre del proceso en la posición 1 es %s\n", pos_1->name);
+  printf("El nombre del proceso en la posición 2 es %s\n", pos_2->name);
+
+  process_destroy(p1);
+  process_destroy(p2);
+  process_destroy(p3);
   // Destruyo la cola liberando todos sus recursos
   queue_destroy(q);
   
