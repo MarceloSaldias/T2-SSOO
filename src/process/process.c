@@ -26,6 +26,27 @@ Process* process_init(int pid, char name[33], int priority, enum Status status, 
   return process;
 }
 
+/** Constructor de un proceso con array */
+Process* process_init_array(char** args)
+{
+  Process* process = malloc(sizeof(Process));
+  
+  // Inicializamos el proceso
+  process -> name = args[0];
+  process -> pid = atoi(args[1]);
+  process -> start_time = atoi(args[2]);
+  process -> cycles = atoi(args[3]);
+  process -> wait = atoi(args[4]);
+  process -> waiting_delay = atoi(args[5]);
+  process -> aging = atoi(args[6]);
+
+  // TODO: Confirmar esto
+  process -> status = WAITING;
+  process -> priority = -1;
+
+  return process; 
+}
+
 /** Funcion que destruye el proceso la memoria utilizada */
 void process_destroy(Process* process)
 {
