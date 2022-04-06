@@ -25,15 +25,9 @@ int main()
   queue_append(q, p1);
   queue_append(q, p2);
   queue_append(q, p3);
+
+  queue_print(q);
   
-  Process* pos_0 = queue_get(q, 0);
-  Process* pos_1 = queue_get(q, 1);
-  Process* pos_2 = queue_get(q, 2);
-
-  printf("El nombre del proceso en la posición 0 es %s\n", pos_0->name);
-  printf("El nombre del proceso en la posición 1 es %s\n", pos_1->name);
-  printf("El nombre del proceso en la posición 2 es %s\n", pos_2->name);
-
   process_destroy(p1);
   process_destroy(p2);
   process_destroy(p3);

@@ -42,3 +42,6 @@ Process* queue_get(Queue* queue, int position);
 
 /** Funcion que destruye la cola liberando la memoria utilizada */
 void queue_destroy(Queue* queue);
+
+/** Imprime información de los elementos de la cola*/
+void queue_print(Queue* queue);

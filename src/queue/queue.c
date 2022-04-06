@@ -122,3 +122,16 @@ void queue_destroy(Queue* queue)
   // Luego libero la memoria de la lista
   free(queue);
 }
+
+/** Imprime información de los elementos de la cola*/
+void queue_print(Queue* queue)
+{
+  if (queue -> count == 0) return;
+  for (int i = 0; i < queue->count; i++)
+  {
+    Process* curr_process = queue_get(queue, i);
+    if (i != 0) printf(" -> ");
+    printf("[%d] %s", curr_process->pid, curr_process->name);
+  }
+  printf("\n");
+}
