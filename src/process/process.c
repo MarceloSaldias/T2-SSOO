@@ -60,3 +60,9 @@ void process_destroy(Process* process)
   // Liberamos la memoria utilizada para almacenar el struct
   free(process);
 }
+
+/** Funcion para imprimir un proceso */
+void process_print(Process* process)
+{
+  printf("Proceso %s (%d) Start: %d\n", process->name, process->pid, process->start_time);
+}

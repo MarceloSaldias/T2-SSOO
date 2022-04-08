@@ -53,3 +53,6 @@ Process* process_init_array(char** args);
 
 /** Funcion que destruye el proceso la memoria utilizada */
 void process_destroy(Process* process);
+
+/** Funcion para imprimir un proceso */
+void process_print(Process* process);
