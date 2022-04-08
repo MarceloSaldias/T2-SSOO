@@ -251,8 +251,8 @@ Process* queue_sjf(Queue* queue)
     if (current_process -> status == READY && current_process -> curr_wait < best_time)
     {
       best_time = current_process -> curr_wait;
-        best_process_index = i;
-        selected_once = 1;
+      best_process_index = i;
+      selected_once = 1;
     }
   }
   if (selected_once) return queue_pop(queue, best_process_index);
@@ -298,6 +298,25 @@ void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
       {
         queue_append(to_queue, queue_pop(from_queue, i));
         break;
+      }
+    }
+  }
+}
+
+/** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera */
+void queue_update_waiting(Queue* queue)
+{
+  Process* p = queue -> start;
+  for (int i = 0; i < queue -> count; i++)
+  {
+    if (p -> status == WAITING)
+    {
+      p->waiting_time += 1;
+      p->curr_waiting_delay -= 1;
+      if (p->curr_waiting_delay == 0)
+      {
+        p->status = READY;
+        p->curr_waiting_delay = p->waiting_delay;
       }
     }
   }
