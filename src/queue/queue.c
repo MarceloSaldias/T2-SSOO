@@ -214,7 +214,6 @@ void queue_destroy(Queue* queue)
 void queue_print(Queue* queue)
 {
   if (queue -> count == 0) return;
-  printf("(%d) ", queue->count);
   for (int i = 0; i < queue->count; i++)
   {
     Process* curr_process = queue_get(queue, i);
