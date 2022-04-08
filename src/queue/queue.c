@@ -238,29 +238,21 @@ Process* queue_lifo(Queue* queue)
   return NULL;
 }
 
-/** Obtiene un proceso de la lista por SJF */
+/** Obtiene un proceso de la lista por SJF, empates por FIFO */
 Process* queue_sjf(Queue* queue)
 {
   int best_process_index = -1;
   int best_time = (int) INFINITY;
+  // Flag para retornar
   int selected_once = 0;
   for (int i = 0; i < queue -> count; i++)
   {
     Process* current_process = queue_get(queue, i);
-    if (current_process -> status == READY)
+    if (current_process -> status == READY && current_process -> curr_wait < best_time)
     {
-      if (current_process -> wait > 0 && current_process -> wait < best_time)
-      {
-        best_time = current_process -> wait;
+      best_time = current_process -> curr_wait;
         best_process_index = i;
         selected_once = 1;
-      }
-      else if (current_process -> wait == 0 && current_process -> cycles < best_time)
-      {
-        best_time = current_process -> cycles;
-        best_process_index = i;
-        selected_once = 1;
-      }
     }
   }
   if (selected_once) return queue_pop(queue, best_process_index);
