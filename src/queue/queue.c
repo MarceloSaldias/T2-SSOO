@@ -223,8 +223,8 @@ void queue_print(Queue* queue)
   printf("\n");
 }
 
-/** Obtiene un proceso de la lista por LIFO */
-Process* queue_lifo(Queue* queue)
+/** Obtiene un proceso de la lista por FIFO */
+Process* queue_fifo(Queue* queue)
 {
   Process* selected_process;
   for (int i = 0; i < queue -> count; i++)
