@@ -59,4 +59,4 @@ Process* queue_sjf(Queue* queue);
 void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue);
 
 /** Obtiene los indices de los procesos que tienen su current_time - start_time % aging = 0 */
-void queue_aging(Queue* from_queue, int current_time, Queue* to_queue);;
+void queue_aging(Queue* from_queue, int current_time, Queue* to_queue);
