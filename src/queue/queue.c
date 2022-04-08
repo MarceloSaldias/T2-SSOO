@@ -306,9 +306,9 @@ void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
 /** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera */
 void queue_update_waiting(Queue* queue)
 {
-  Process* p = queue -> start;
   for (int i = 0; i < queue -> count; i++)
   {
+    Process* p = queue_get(queue, i);
     if (p -> status == WAITING)
     {
       p->waiting_time += 1;
