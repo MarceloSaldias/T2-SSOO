@@ -4,10 +4,75 @@
 #include "../queue/queue.h"
 #include "../file_manager/manager.h"
 
-// Parámetro del programa
+// Parámetros del programa
 int q;
 char* output_file;
 
+// Declaración de colas
+Queue* initial_q;
+Queue* high_prio_q;
+Queue* mid_prio_q;
+Queue* low_prio_q;
+Queue* finished_q;
+
+// Tiempo de simulación
+int t = 0;
+// Proceso actualmente en CPU
+Process* cpu_process;
+// Quantum restante en la CPU
+int curr_quantum = -1;
+
+void update_running_process()
+{
+	if (!cpu_process) return;
+	cpu_process -> curr_wait -= 1;
+	cpu_process -> cycles -= 1;
+	curr_quantum -= 1;
+	// Si terminó su ejecución
+	if (cpu_process -> cycles == 0)
+	{
+		cpu_process -> status = FINISHED;
+		cpu_process -> turnaround_time = t - cpu_process -> start_time;
+		// Lo añadimos a la cola de procesos terminados
+		queue_append(finished_q, cpu_process);
+		cpu_process = NULL;
+	}
+	else if (cpu_process -> curr_wait == 0)
+	{
+		cpu_process -> status = WAITING;
+		// Aumenta su prioridad si está en la cola 2 (cola 1 no puede auemntar)
+		if (cpu_process -> priority == 2)
+		{
+			// Aumentamos su prioridad
+			cpu_process -> priority = 1;
+			queue_append(high_prio_q, cpu_process);
+			cpu_process = NULL;
+		}
+		// Si está en la cola 3, entonces vuelve a la cola 3
+		if (cpu_process -> priority == 3)
+		{
+			queue_append(low_prio_q, cpu_process);
+			cpu_process = NULL;
+		}
+	}
+	else if (cpu_process -> curr_wait > 0 && curr_quantum == 0 && cpu_process -> priority != 3)
+	{
+		cpu_process -> times_interrupted += 1;
+		// Se reduce la prioridad del proceso
+		if (cpu_process -> priority == 1)
+		{
+			cpu_process -> priority = 2;
+			queue_append(mid_prio_q, cpu_process);
+			cpu_process = NULL;
+		}
+		else if (cpu_process -> priority == 2)
+		{
+			cpu_process -> priority = 3;
+			queue_append(low_prio_q, cpu_process);
+			cpu_process = NULL;
+		}
+	}
+}
 
 int main(int argc, char const *argv[])
 {
@@ -18,78 +83,23 @@ int main(int argc, char const *argv[])
 	output_file = (char *)argv[2];
 	q = atoi((char *) argv[3]); 
 
-	printf("Archivo output: %s\n", output_file);
-	printf("Valor de q: %d\n", q);
-
-	/*Mostramos el archivo de input en consola*/
-	printf("Nombre archivo: %s\n", file_name);
 	printf("Cantidad de procesos: %d\n", input_file->len);
-	printf("Procesos:\n");
-
-
-
-	for (int i = 0; i < input_file->len; ++i)
-	{
-		for (int j = 0; j < 7; ++j)
-		{
-			printf("%s ", input_file->lines[i][j]);
-		}
-		printf("\n");
-	}
-
-	printf("=============================================================\n");
 	
-	// Acá comienzo la tarea !!
+	// ========================= INICIO TAREA =========================
+	// Inicializamos las colas
+	initial_q = queue_init(0);
+	high_prio_q = queue_init((int) 2 * q);
+	mid_prio_q = queue_init((int) 1 * q);
+	low_prio_q = queue_init(0);
+	finished_q = queue_init(0);
 
-  // Traemos todos los procesos a una cola inicial, solo para almacenar los datos iniciales
-	Queue* initial_q = queue_init(0);
-
+  	// Traemos todos los procesos a una cola inicial,
+	// solo para almacenar los procesos antes de entrar al MLFQ
 	for (int i = 0; i < input_file->len; ++i)
 	{
 		Process* new_process = process_init_array(input_file->lines[i]);
 		queue_append(initial_q, new_process);
 	}
-
-	queue_get(initial_q, 0) -> status = WAITING;
-	// Podemos verificar que están los mismos procesos que se printean arriba
-	queue_print(initial_q);
-
-	//Process* p;
-
-	//printf("TESTING POP\n");
-	//p = queue_pop(initial_q, 2);
-	//process_print(p);
-	//process_destroy(p);
-
-	//printf("TESTING SJF\n");
-	//p = queue_sjf(initial_q);
-	//process_print(p);
-	//process_destroy(p);
-
-	//printf("TESTING LIFO\n");
-	//p = queue_lifo(initial_q);
-	//if (!p)
-	//{
-	//	printf("WAAA\n");
-	//}
-	//else 
-	//{
-	//	process_print(p);
-	//	process_destroy(p);
-	//}
-
-	// Cola de mayor prioridad
-	Queue* high_prio_q = queue_init((int) 2 * q);
-	// Cola de media prioridad
-	Queue* mid_prio_q = queue_init((int) 1 * q);
-	// Cola de baja prioridad
-	Queue* low_prio_q = queue_init(0);
-
-	queue_aging(initial_q, 100, high_prio_q);
-	printf("COLA INICIAL\n");
-	queue_print(initial_q);
-	printf("COLA ALTA PRIO\n");
-	queue_print(high_prio_q);
 
 	// Tiempo de la simulación
 	//int curr_time = 0;
@@ -98,5 +108,6 @@ int main(int argc, char const *argv[])
 	queue_destroy(high_prio_q);
 	queue_destroy(mid_prio_q);
 	queue_destroy(low_prio_q);
+	queue_destroy(finished_q);
 	input_file_destroy(input_file);
 }
