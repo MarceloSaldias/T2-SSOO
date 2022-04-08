@@ -40,6 +40,9 @@ void queue_append(Queue* queue, Process* process);
 /** Funcion que obtiene el valor de la cola en la posicion dada */
 Process* queue_get(Queue* queue, int position);
 
+/** Funcion que obtiene el valor de la cola en la posicion dada y lo saca de la cola */
+Process* queue_pop(Queue* queue, int position);
+
 /** Funcion que destruye la cola liberando la memoria utilizada */
 void queue_destroy(Queue* queue);
 

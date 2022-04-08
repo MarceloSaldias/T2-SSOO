@@ -114,6 +114,90 @@ Process* queue_get(Queue* queue, int position)
   return actual -> process;
 }
 
+/** Funcion que obtiene el valor de la cola en la posicion dada y lo saca de la cola */
+Process* queue_pop(Queue* queue, int position)
+{
+  // Si no hay suficiente nodos, tiro error
+  if (position >= queue -> count)
+  {
+    printf("Error, el indice al que estas accediendo supera el largo de la cola\n");
+    exit(1);
+  }
+
+  // Declaramos el proceso y nodo que vamos a seleccionar
+  Process* selected_process;
+  Node* selected_node;
+
+  // Si tengo solamente un nodo
+  if (queue -> count == 1)
+  {
+    // Guardamos el nodo
+    selected_node = queue -> start;
+    // Guardamos el proceso
+    selected_process = selected_node -> process;
+    // Liberamos la memoria usada por el nodo
+    free(selected_node);
+    // Quitamos la referencia al nodo en la cola
+    queue -> start = NULL;
+    queue -> end = NULL;
+  }
+  // Es el primer nodo
+  else if (position == 0)
+  {
+    // Guardamos el nodo
+    selected_node = queue -> start;
+    // Guardamos el proceso
+    selected_process = selected_node -> process;
+    // El comienzo de la cola es el siguiente nodo
+    queue -> start = selected_node -> next;
+    // Quitamos la referencia del siguiente nodo
+    selected_node -> next -> last = NULL;
+    // Liberamos la memoria usada por el nodo
+    free(selected_node);
+  }
+  // Es el último nodo
+  else if (position == queue -> count - 1)
+  {
+    // Guardamos el nodo
+    selected_node = queue -> end;
+    // Guardamos el proceso
+    selected_process = selected_node -> process;
+    // El fin de la cola es el nodo anterior
+    queue -> end = selected_node -> last;
+    // Quitamos la referencia del nodo anterior
+    selected_node -> last -> next = NULL;
+    // Liberamos la memoria usada por el nodo
+    free(selected_node);
+  }
+  // Es algún nodo entremedio
+  else
+  {
+    for (int i = 0; i < position; i++)
+    {
+      // Me muevo por los nodos hasta encontrar la posicion que busco
+      selected_node = queue -> start;
+      for (int i = 0; i < position; i++)
+      {
+        selected_node = selected_node -> next;
+      }
+      // Guardamos el proceso que queremos sacar
+      selected_process = selected_node -> process;
+
+      // Mapeamos los nodos a cada lado
+      Node* node_before = selected_node -> last;
+      Node* node_after = selected_node -> next;
+
+      node_before -> next = node_after;
+      node_after -> last = node_before;
+
+      // Liberamos la memoria usada por el nodo
+      free(selected_node);
+    }
+  }
+  queue -> count -= 1;
+  return selected_process;
+}
+
 /** Funcion que destruye la lista ligada liberando la memoria utilizada */
 void queue_destroy(Queue* queue)
 {
@@ -128,6 +212,7 @@ void queue_destroy(Queue* queue)
 void queue_print(Queue* queue)
 {
   if (queue -> count == 0) return;
+  printf("(%d) ", queue->count);
   for (int i = 0; i < queue->count; i++)
   {
     Process* curr_process = queue_get(queue, i);
