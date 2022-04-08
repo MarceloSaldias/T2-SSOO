@@ -270,12 +270,43 @@ Process* queue_sjf(Queue* queue)
 /** Obtiene los indices de los procesos que tienen su start_time = current_time */
 void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue)
 {
-  for (int i = from_queue -> count - 1; i >= 0; i--)
+  int checked_incomplete = 1;
+  while (checked_incomplete)
   {
-    Process* p = queue_get(from_queue, i);
-    if (p -> start_time == current_time)
+    for (int i = 0; i < from_queue -> count; i++)
     {
-      queue_append(to_queue, queue_pop(from_queue, i));
+      if (i == from_queue -> count - 1)
+      {
+        checked_incomplete = 0;
+      }
+      Process* p = queue_get(from_queue, i);
+      if (p -> start_time == current_time)
+      {
+        queue_append(to_queue, queue_pop(from_queue, i));
+        break;
+      }
+    }
+  }
+}
+
+/** Obtiene los indices de los procesos que tienen su (current_time - start_time) % aging = 0 */
+void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
+{
+  int checked_incomplete = 1;
+  while (checked_incomplete)
+  {
+    for (int i = 0; i < from_queue -> count; i++)
+    {
+      if (i == from_queue -> count - 1)
+      {
+        checked_incomplete = 0;
+      }
+      Process* p = queue_get(from_queue, i);
+      if ((current_time - p->start_time) % p->aging == 0)
+      {
+        queue_append(to_queue, queue_pop(from_queue, i));
+        break;
+      }
     }
   }
 }
