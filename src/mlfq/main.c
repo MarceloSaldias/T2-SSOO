@@ -54,31 +54,29 @@ int main(int argc, char const *argv[])
 	// Podemos verificar que están los mismos procesos que se printean arriba
 	queue_print(initial_q);
 
-	Process* p;
+	//Process* p;
 
 	//printf("TESTING POP\n");
 	//p = queue_pop(initial_q, 2);
 	//process_print(p);
 	//process_destroy(p);
 
-	printf("TESTING SJF\n");
-	p = queue_sjf(initial_q);
-	process_print(p);
-	process_destroy(p);
+	//printf("TESTING SJF\n");
+	//p = queue_sjf(initial_q);
+	//process_print(p);
+	//process_destroy(p);
 
-	printf("TESTING LIFO\n");
-	p = queue_lifo(initial_q);
-	if (!p)
-	{
-		printf("WAAA\n");
-	}
-	else 
-	{
-		process_print(p);
-		process_destroy(p);
-	}
-
-	queue_print(initial_q);
+	//printf("TESTING LIFO\n");
+	//p = queue_lifo(initial_q);
+	//if (!p)
+	//{
+	//	printf("WAAA\n");
+	//}
+	//else 
+	//{
+	//	process_print(p);
+	//	process_destroy(p);
+	//}
 
 	// Cola de mayor prioridad
 	Queue* high_prio_q = queue_init((int) 2 * q);
@@ -86,6 +84,12 @@ int main(int argc, char const *argv[])
 	Queue* mid_prio_q = queue_init((int) 1 * q);
 	// Cola de baja prioridad
 	Queue* low_prio_q = queue_init(0);
+
+	queue_aging(initial_q, 100, high_prio_q);
+	printf("COLA INICIAL\n");
+	queue_print(initial_q);
+	printf("COLA ALTA PRIO\n");
+	queue_print(high_prio_q);
 
 	// Tiempo de la simulación
 	//int curr_time = 0;
