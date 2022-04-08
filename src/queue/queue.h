@@ -54,3 +54,6 @@ Process* queue_lifo(Queue* queue);
 
 /** Obtiene un proceso de la lista por SJF */
 Process* queue_sjf(Queue* queue);
+
+/** Obtiene los indices de los procesos que tienen su start_time = current_time */
+void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue);

@@ -266,3 +266,16 @@ Process* queue_sjf(Queue* queue)
   if (selected_once) return queue_pop(queue, best_process_index);
   return NULL;
 }
+
+/** Obtiene los indices de los procesos que tienen su start_time = current_time */
+void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue)
+{
+  for (int i = from_queue -> count - 1; i >= 0; i--)
+  {
+    Process* p = queue_get(from_queue, i);
+    if (p -> start_time == current_time)
+    {
+      queue_append(to_queue, queue_pop(from_queue, i));
+    }
+  }
+}
