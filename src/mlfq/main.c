@@ -36,6 +36,8 @@ int main(int argc, char const *argv[])
 		}
 		printf("\n");
 	}
+
+	printf("=============================================================\n");
 	
 	// Acá comienzo la tarea !!
 
@@ -48,7 +50,34 @@ int main(int argc, char const *argv[])
 		queue_append(initial_q, new_process);
 	}
 
+	queue_get(initial_q, 0) -> status = WAITING;
 	// Podemos verificar que están los mismos procesos que se printean arriba
+	queue_print(initial_q);
+
+	Process* p;
+
+	//printf("TESTING POP\n");
+	//p = queue_pop(initial_q, 2);
+	//process_print(p);
+	//process_destroy(p);
+
+	printf("TESTING SJF\n");
+	p = queue_sjf(initial_q);
+	process_print(p);
+	process_destroy(p);
+
+	printf("TESTING LIFO\n");
+	p = queue_lifo(initial_q);
+	if (!p)
+	{
+		printf("WAAA\n");
+	}
+	else 
+	{
+		process_print(p);
+		process_destroy(p);
+	}
+
 	queue_print(initial_q);
 
 	// Cola de mayor prioridad
