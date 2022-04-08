@@ -25,6 +25,8 @@ typedef struct process {
     // Cantidad de ciclos que el proceso esperará por el usuario
     // es decir, cantidad de tiempo que el proceso estará en WAITING
     int waiting_delay;
+    // Contador para el tiempo de espera actual
+    int curr_waiting_delay;
     // Cantidad de tiempo que debe pasar para que el proceso vuelva
     // a la cola de mayor prioridad
     int aging;

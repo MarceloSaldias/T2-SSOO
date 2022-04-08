@@ -39,6 +39,7 @@ Process* process_init_array(char** args)
   process -> wait = atoi(args[4]);
   process -> curr_wait = atoi(args[4]);
   process -> waiting_delay = atoi(args[5]);
+  process -> curr_waiting_delay = atoi(args[5]);
   process -> aging = atoi(args[6]);
   process -> status = READY;
   process -> priority = 2;
