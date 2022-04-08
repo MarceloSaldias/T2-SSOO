@@ -2,6 +2,8 @@
 #include <stdlib.h>
 // Liberia de input y output
 #include <stdio.h>
+// INFINITY
+#include <math.h>
 
 // Importamos el archivo .h correspondiente
 #include "queue.h"
@@ -217,7 +219,7 @@ void queue_print(Queue* queue)
   {
     Process* curr_process = queue_get(queue, i);
     if (i != 0) printf(" -> ");
-    printf("[%d] %s", curr_process->pid, curr_process->name);
+    printf("[%d] %s <%d/%d>", curr_process->status, curr_process->name, curr_process->wait, curr_process->cycles);
   }
   printf("\n");
 }
@@ -234,5 +236,34 @@ Process* queue_lifo(Queue* queue)
       return queue_pop(queue, i);
     }
   }
+  return NULL;
+}
+
+/** Obtiene un proceso de la lista por SJF */
+Process* queue_sjf(Queue* queue)
+{
+  int best_process_index = -1;
+  int best_time = (int) INFINITY;
+  int selected_once = 0;
+  for (int i = 0; i < queue -> count; i++)
+  {
+    Process* current_process = queue_get(queue, i);
+    if (current_process -> status == READY)
+    {
+      if (current_process -> wait > 0 && current_process -> wait < best_time)
+      {
+        best_time = current_process -> wait;
+        best_process_index = i;
+        selected_once = 1;
+      }
+      else if (current_process -> wait == 0 && current_process -> cycles < best_time)
+      {
+        best_time = current_process -> cycles;
+        best_process_index = i;
+        selected_once = 1;
+      }
+    }
+  }
+  if (selected_once) return queue_pop(queue, best_process_index);
   return NULL;
 }

@@ -51,3 +51,6 @@ void queue_print(Queue* queue);
 
 /** Obtiene un proceso de la lista por LIFO */
 Process* queue_lifo(Queue* queue);
+
+/** Obtiene un proceso de la lista por SJF */
+Process* queue_sjf(Queue* queue);
