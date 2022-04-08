@@ -48,3 +48,6 @@ void queue_destroy(Queue* queue);
 
 /** Imprime información de los elementos de la cola*/
 void queue_print(Queue* queue);
+
+/** Obtiene un proceso de la lista por LIFO */
+Process* queue_lifo(Queue* queue);

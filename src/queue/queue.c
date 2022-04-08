@@ -221,3 +221,18 @@ void queue_print(Queue* queue)
   }
   printf("\n");
 }
+
+/** Obtiene un proceso de la lista por LIFO */
+Process* queue_lifo(Queue* queue)
+{
+  Process* selected_process;
+  for (int i = 0; i < queue -> count; i++)
+  {
+    selected_process = queue_get(queue, i);
+    if (selected_process -> status == READY)
+    {
+      return queue_pop(queue, i);
+    }
+  }
+  return NULL;
+}
