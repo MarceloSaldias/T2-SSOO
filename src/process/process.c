@@ -39,6 +39,8 @@ Process* process_init_array(char** args)
   process -> wait = atoi(args[4]);
   process -> waiting_delay = atoi(args[5]);
   process -> aging = atoi(args[6]);
+  process -> status = READY;
+  process -> priority = 2;
 
   // Inicializamos los datos de analítica
   process -> times_chosen_by_cpu = 0;
@@ -46,10 +48,6 @@ Process* process_init_array(char** args)
   process -> turnaround_time = 0;
   process -> response_time = 0;
   process -> waiting_time = 0;
-
-  // TODO: Confirmar esto
-  process -> status = WAITING;
-  process -> priority = -1;
 
   return process; 
 }
@@ -64,5 +62,5 @@ void process_destroy(Process* process)
 /** Funcion para imprimir un proceso */
 void process_print(Process* process)
 {
-  printf("Proceso %s (%d) Start: %d\n", process->name, process->pid, process->start_time);
+  printf("Proceso %s (PID: %d) Start Time: %d\n", process->name, process->pid, process->start_time);
 }

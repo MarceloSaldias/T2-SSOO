@@ -26,7 +26,7 @@ typedef struct process {
     // Cantidad de tiempo que debe pasar para que el proceso vuelva
     // a la cola de mayor prioridad
     int aging;
-    // Prioridad
+    // Prioridad del proceso (2 -> Mayor prioridad, 1 -> Prioridad Media, 0 -> Prioridad Baja)
     int priority;
     // Estado
     enum Status status;
