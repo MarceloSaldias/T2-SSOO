@@ -61,5 +61,7 @@ void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int 
 /** Obtiene los indices de los procesos que tienen su current_time - start_time % aging = 0 */
 void queue_aging(Queue* from_queue, int current_time, Queue* to_queue);
 
+int cpu_aging(Process* p, int current_time);
+
 /** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera*/
 void queue_update_waiting(Queue* queue);

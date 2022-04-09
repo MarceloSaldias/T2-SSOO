@@ -331,12 +331,12 @@ int cpu_aging(Process* p, int current_time)
 {
   if ((current_time - p->start_time) % p->aging == 0)
       {
-        printf("%s cumplió sus ciclo aging, pasará de CPU, a cola de prioridad 2 cuando termine de ejecutarse\n", p->name, p->priority);
+        printf("%s cumplió sus ciclo aging, pasará de CPU, a cola de prioridad %d cuando termine de ejecutarse\n", p->name, p->priority);
         return 1;
       }
   else
   {
-    return 0
+    return 0;
   }
 }
 /** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera */
