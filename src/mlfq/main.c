@@ -3,7 +3,8 @@
 #include "../process/process.h"
 #include "../queue/queue.h"
 #include "../file_manager/manager.h"
-
+#include <unistd.h>
+//#include <windows.h>
 // Parámetros del programa
 int q;
 char* output_file;
@@ -31,6 +32,7 @@ void update_running_process()
 	// Si terminó su ejecución
 	if (cpu_process -> cycles == 0)
 	{
+		printf("cpu_process %i terminó su ejecución\n", cpu_process ->pid);
 		cpu_process -> status = FINISHED;
 		cpu_process -> turnaround_time = t - cpu_process -> start_time;
 		// Lo añadimos a la cola de procesos terminados
@@ -39,35 +41,38 @@ void update_running_process()
 	}
 	else if (cpu_process -> curr_wait == 0)
 	{
+		printf("cpu_process %i terminó su ráfaga\n", cpu_process ->pid);
 		cpu_process -> status = WAITING;
-		// Aumenta su prioridad si está en la cola 2 (cola 1 no puede auemntar)
-		if (cpu_process -> priority == 2)
+		cpu_process -> curr_wait = cpu_process -> wait;
+		// Aumenta su prioridad si está en la cola 1 (cola 2 no puede auemntar)
+		if (cpu_process -> priority == 1)
 		{
 			// Aumentamos su prioridad
-			cpu_process -> priority = 1;
+			cpu_process -> priority = 2;
 			queue_append(high_prio_q, cpu_process);
-			cpu_process = NULL;
+			cpu_process = NULL; //pq queda en null?
 		}
 		// Si está en la cola 3, entonces vuelve a la cola 3
-		if (cpu_process -> priority == 3)
+		if (cpu_process -> priority == 0) //prioridad debería ser 0
 		{
 			queue_append(low_prio_q, cpu_process);
 			cpu_process = NULL;
 		}
 	}
-	else if (cpu_process -> curr_wait > 0 && curr_quantum == 0 && cpu_process -> priority != 3)
+	else if (cpu_process -> curr_wait > 0 && curr_quantum == 0 && cpu_process -> priority != 0) //prioridad debería ser 0
 	{
+		printf("cpu_process %i terminó su quantum\n", cpu_process ->pid);
 		cpu_process -> times_interrupted += 1;
 		// Se reduce la prioridad del proceso
-		if (cpu_process -> priority == 1)
+		if (cpu_process -> priority == 2)
 		{
-			cpu_process -> priority = 2;
+			cpu_process -> priority = 1;
 			queue_append(mid_prio_q, cpu_process);
 			cpu_process = NULL;
 		}
-		else if (cpu_process -> priority == 2)
+		else if (cpu_process -> priority == 1)
 		{
-			cpu_process -> priority = 3;
+			cpu_process -> priority = 0;
 			queue_append(low_prio_q, cpu_process);
 			cpu_process = NULL;
 		}
@@ -97,12 +102,113 @@ int main(int argc, char const *argv[])
 	// solo para almacenar los procesos antes de entrar al MLFQ
 	for (int i = 0; i < input_file->len; ++i)
 	{
+		printf("==================================\n");
+		printf("nombre proceso: %s\n", input_file->lines[i][0]);
+		printf("pid: %s\n", input_file->lines[i][1]);
+		printf("tiempo de inicio: %s\n", input_file->lines[i][2]);
+		printf("ciclos: %s\n", input_file->lines[i][3]);
+		printf("ciclos por ráfaga: %s\n", input_file->lines[i][4]);
+		printf("cantidad de tiempo en waiting: %s\n", input_file->lines[i][5]);
+		printf("tiempo de envejecimiento: %s\n", input_file->lines[i][6]);
 		Process* new_process = process_init_array(input_file->lines[i]);
 		queue_append(initial_q, new_process);
 	}
+	Process* proc;
+	/*
+	Por cada unidad de tiempo el scheduler debe realizar:
+	1. Actualizar los procesos que cumplan su I/O burst de WAITING a READY. CHECK
+	2. En caso de existir un proceso en estado RUNING, actualizar su estado segun corresponda. ´
+	3. Ingresar los procesos a sus colas correspondientes siguiendo la orden de ingreso.
+	3.1) Si un proceso salio de la CPU, ingresarlo a la cola correspodiente.
+	3.2) Por cada proceso p comprobar si t = t iniciop e ingresarlo a la primera cola. CHECK
+	3.3) Por cada proceso p en la segunda cola verificar si se cumple (t − t iniciop) % Sp = 0 e ingresarlo a la
+	primera cola. CHECK
+	3.4) Por cada proceso p en la tercera cola verificar si se cumple (t − t iniciop) % Sp = 0 e ingresarlo a la
+	primera cola. CHECK
+	4. Ingresar un proceso a la CPU si corresponde, esto implica cambiar su estado de READY a RUNNING. 
+	*/
+	while (1)
+	{
+		printf("=============== tiempo de ejecución: %i ==================\n", t);
+		// Actualizar los procesos que cumplan su I/O burst de WAITING a READY.
+		queue_update_waiting(initial_q);
+		queue_update_waiting(high_prio_q);
+		queue_update_waiting(mid_prio_q);
+		queue_update_waiting(low_prio_q);
 
-	// Tiempo de la simulación
-	//int curr_time = 0;
+		//En caso de existir un proceso en estado RUNING, actualizar su estado segun corresponda.
+		update_running_process();
+
+		// --------- insertar cada proceso en la cola correspondiente ------------------------
+		if (initial_q ->count != 0) {
+			printf("initial queue: ");
+			queue_print(initial_q);
+		}
+		for (int i = 0; i < initial_q -> count; i++) 
+		{
+			proc = queue_get(initial_q, i);
+			printf("%s\n", proc ->name);
+			if (proc -> priority == 2 )
+			{
+				//printf("prioridad proceso: 2\n");
+				queue_start_time(initial_q, t, high_prio_q, i);
+				printf("high priority queue: ");
+				queue_print(high_prio_q);
+			}
+			else if (proc -> priority == 1 )
+			{
+				//printf("prioridad proceso: 1\n");
+				queue_start_time(initial_q, t, mid_prio_q, i);
+				printf("mid priority queue: ");
+				queue_print(mid_prio_q);
+			}
+			else
+			{
+				//printf("prioridad proceso: 0\n");
+				queue_start_time(initial_q, t, low_prio_q, i);
+				printf("low priority queue: ");
+				queue_print(low_prio_q);
+			}
+		}
+		//Por cada proceso p en la segunda cola verificar si se cumple (t − t iniciop) % Sp = 0 e ingresarlo a la
+		//primera cola.
+		queue_aging(mid_prio_q, t, high_prio_q);
+		//Por cada proceso p en la tercera cola verificar si se cumple (t − t iniciop) % Sp = 0 e ingresarlo a la
+		//primera cola.
+		queue_aging(low_prio_q, t, high_prio_q);
+		// ------------ ACÁ DEFINO CUAL PROCESO ESTÁ EN LA CPU ------------------
+		// primero debo recorrer la cola high, luego la mid y luego la low
+		// si hay uno listo en la cola 1, ingresarlo
+		if (!cpu_process)
+		{
+			cpu_process = queue_fifo(high_prio_q);
+		}
+		if (cpu_process)
+		{
+			cpu_process->status = RUNNING;
+			printf("el proceso %i está RUNNING en la CPU\n", cpu_process->pid);
+			printf("ciclos proceso %i: %i\n", cpu_process->pid, cpu_process->cycles);
+			printf("ráfaga proceso %i: %i\n", cpu_process->pid, cpu_process->curr_wait);
+			printf("quantum proceso %i: %i\n", cpu_process->pid, cpu_process->curr_wait);
+		}
+		// si no hay uno listo en la cola 1 y si hay uno listo en la cola 2, ingresarlo
+		if (!cpu_process)
+		{
+			cpu_process = queue_fifo(mid_prio_q);
+		}
+		// si no hay uno listo en la cola 2 y si hay uno listo en la cola 3, ingresarlo
+		if (!cpu_process)
+		{
+			cpu_process = queue_sjf(low_prio_q);
+		}
+		//printf("cpu status: %i\n", cpu_process -> status);
+		if (t == 1000) //este if debería ser cuando todos los procesos estén FINISHED
+		{
+			break;
+		}
+		//sleep(1);
+		t++;
+	}
 
 	queue_destroy(initial_q);
 	queue_destroy(high_prio_q);

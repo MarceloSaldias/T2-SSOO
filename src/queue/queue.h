@@ -56,7 +56,7 @@ Process* queue_fifo(Queue* queue);
 Process* queue_sjf(Queue* queue);
 
 /** Obtiene los indices de los procesos que tienen su start_time = current_time */
-void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue);
+void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int index);
 
 /** Obtiene los indices de los procesos que tienen su current_time - start_time % aging = 0 */
 void queue_aging(Queue* from_queue, int current_time, Queue* to_queue);
