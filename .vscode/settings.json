@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "queue.h": "c"
+        "queue.h": "c",
+        "process.h": "c",
+        "manager.h": "c"
     }
 }
