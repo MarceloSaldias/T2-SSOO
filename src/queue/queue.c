@@ -261,9 +261,9 @@ Process* queue_sjf(Queue* queue)
 }
 
 /** Obtiene los indices de los procesos que tienen su start_time = current_time */
-/*
-void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int index)
+void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue)
 {
+  if (from_queue -> count == 0) return;
   int checked_incomplete = 1;
   while (checked_incomplete)
   {
@@ -283,34 +283,22 @@ void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int 
     }
   }
 }
-*/
-
-void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int index)
-{
-  Process* p = queue_get(from_queue, index);
-  //printf("process id: %i, process start time: %i\n", p-> pid, p -> start_time);
-  if (p -> start_time == current_time)
-  {
-    queue_append(to_queue, queue_pop(from_queue, index));
-    printf("%s agregado a queue de prioridad %i\n", p->name, p->priority);
-  }
-}
 
 
-
-/** Obtiene los indices de los procesos que tienen su (current_time - start_time) % aging = 0 */
+/** Mueve los procesos de from_queue que tienen su (current_time - start_time) % aging = 0 a to_queue */
 void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
 {
+  if (from_queue -> count == 0 ) return;
+
   int checked_incomplete = 1;
   while (checked_incomplete)
   {
-    if (from_queue -> count == 0)
-    {
-      //printf("no hay nada en esta from_queue\n");
-      break;
-    }
     for (int i = 0; i < from_queue -> count; i++)
     {
+      if (i == from_queue -> count - 1)
+      {
+        checked_incomplete = 0;
+      }
       Process* p = queue_get(from_queue, i);
       if ((current_time - p->start_time) % p->aging == 0)
       {
@@ -318,27 +306,21 @@ void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
         queue_append(to_queue, queue_pop(from_queue, i));
         break;
       }
-      if (i == from_queue -> count - 1)
-      {
-        //printf("fuck this shit\n");
-        checked_incomplete = 0;
-      }
     }
   }
 }
 
+/** Entrega 1 si el proceso debe realizar aging en t = current_time y 0 en otro caso */
 int cpu_aging(Process* p, int current_time)
 {
   if ((current_time - p->start_time) % p->aging == 0)
-      {
-        printf("%s cumplió sus ciclo aging, pasará de CPU, a cola de prioridad %d cuando termine de ejecutarse\n", p->name, p->priority);
-        return 1;
-      }
-  else
   {
-    return 0;
+    printf("%s cumplió sus ciclo aging, pasará de CPU, a cola de prioridad %d cuando termine de ejecutarse\n", p->name, p->priority);
+    return 1;
   }
+  return 0;
 }
+
 /** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera */
 void queue_update_waiting(Queue* queue)
 {
@@ -346,6 +328,26 @@ void queue_update_waiting(Queue* queue)
   {
     Process* p = queue_get(queue, i);
     if (p -> status == WAITING)
+    {
+      p->waiting_time += 1;
+      p->curr_waiting_delay -= 1;
+      if (p->curr_waiting_delay == 0)
+      {
+        p->status = READY;
+        p->curr_waiting_delay = p->waiting_delay;
+        printf("%s pasó de WAITING a READY luego de %i desde que inició\n", p->name, p->waiting_delay);
+      }
+    }
+  }
+}
+
+/** Aumenta el contador de waiting_time de todos los proceso en estado READY */
+void queue_waiting_time_on_ready(Queue* queue)
+{
+  for (int i = 0; i < queue -> count; i++)
+  {
+    Process* p = queue_get(queue, i);
+    if (p -> status == READY)
     {
       p->waiting_time += 1;
       p->curr_waiting_delay -= 1;

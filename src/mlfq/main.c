@@ -22,6 +22,8 @@ int t = 0;
 Process* cpu_process;
 // Quantum restante en la CPU
 int curr_quantum = -1;
+// Flag para ver si le toca aging mientras está en ejecución
+int running_aging = 0;
 
 /*
 POR IMPLEMENTAR:
@@ -29,11 +31,22 @@ POR IMPLEMENTAR:
 */
 void update_running_process()
 {
+	// Si no hay ningun proceso corriendo
+	// 	nos saltamos esta sección
 	if (!cpu_process) return;
+
+	cpu_process -> status = RUNNING;
 	cpu_process -> curr_wait -= 1;
 	cpu_process -> cycles -= 1;
 	curr_quantum -= 1;
-	int alcanza_aging = cpu_aging(cpu_process, t); //vale 1 si cpu_process alcanzó aging mientras ejecutaba
+
+	// Verificamos si el proceso en la CPU tuvo aging
+	//	solo si no lo presentó en un ciclo anterior
+	if (!running_aging)
+	{
+		running_aging = cpu_aging(cpu_process, t);
+	}
+
 	// Si terminó su ejecución
 	if (cpu_process -> cycles == 0)
 	{
@@ -43,50 +56,42 @@ void update_running_process()
 		// Lo añadimos a la cola de procesos terminados
 		queue_append(finished_q, cpu_process);
 		cpu_process = NULL;	
-		curr_quantum = q;
 	}
 	else if (cpu_process -> curr_wait == 0)
 	{
 		printf("%s terminó su ráfaga\n", cpu_process ->name);
 		cpu_process -> status = WAITING;
 		cpu_process -> curr_wait = cpu_process -> wait;
-		// Aumenta su prioridad si está en la cola 1 (cola 2 no puede auemntar)
-		if (alcanza_aging == 1)
+		// Si está en la cola 1, 2 o tuvo su aging mientras estuvo en ejecución
+		if (cpu_process -> priority == 2 || cpu_process -> priority == 1 || running_aging == 1)
 		{
-			queue_append(high_prio_q, cpu_process);
-			cpu_process = NULL;
-		}
-		else if (cpu_process -> priority == 2)
-		{
-			queue_append(high_prio_q, cpu_process);
-			cpu_process = NULL;
-		}
-		else if (cpu_process -> priority == 1)
-		{
-			// Aumentamos su prioridad
 			cpu_process -> priority = 2;
 			queue_append(high_prio_q, cpu_process);
 			cpu_process = NULL;
+			running_aging = 0;
 		}
 		// Si está en la cola 3, entonces vuelve a la cola 3
-		else if (cpu_process -> priority == 0) //prioridad debería ser 0
+		else if (cpu_process -> priority == 0)
 		{
 			queue_append(low_prio_q, cpu_process);
 			cpu_process = NULL;
 		}
-		curr_quantum = q;
 	}
-	else if (cpu_process -> curr_wait > 0 && curr_quantum == 0 && cpu_process -> priority != 0) //prioridad debería ser 0
+	// Si me quedé sin quantum de ejecución y estoy en las colas 1 o 2
+	else if (cpu_process -> priority != 0 && cpu_process -> curr_wait > 0 && curr_quantum == 0)
 	{
 		printf("%s terminó su quantum\n", cpu_process ->name);
 		cpu_process -> times_interrupted += 1;
-		cpu_process -> status = WAITING;
-		// Se reduce la prioridad del proceso
-		if (alcanza_aging == 1)
+		cpu_process -> status = READY;
+		// Si tuvo su aging en ejecución, pasa a la cola de alta prioridad
+		if (running_aging == 1)
 		{
+			cpu_process -> priority = 2;
 			queue_append(high_prio_q, cpu_process);
 			cpu_process = NULL;
+			running_aging = 0;
 		}
+		// Se reduce la prioridad del proceso
 		else if (cpu_process -> priority == 2)
 		{
 			cpu_process -> priority = 1;
@@ -99,7 +104,6 @@ void update_running_process()
 			queue_append(low_prio_q, cpu_process);
 			cpu_process = NULL;
 		}
-		curr_quantum = q;
 	}
 }
 
@@ -111,8 +115,6 @@ int main(int argc, char const *argv[])
 
 	output_file = (char *)argv[2];
 	q = atoi((char *) argv[3]); 
-
-	printf("Cantidad de procesos: %d\n", input_file->len);
 	
 	// ========================= INICIO TAREA =========================
 	// Inicializamos las colas
@@ -122,7 +124,7 @@ int main(int argc, char const *argv[])
 	low_prio_q = queue_init(0);
 	finished_q = queue_init(0);
 
-  	// Traemos todos los procesos a una cola inicial,
+  // Traemos todos los procesos a una cola inicial,
 	// solo para almacenar los procesos antes de entrar al MLFQ
 	for (int i = 0; i < input_file->len; ++i)
 	{
@@ -137,7 +139,7 @@ int main(int argc, char const *argv[])
 		Process* new_process = process_init_array(input_file->lines[i]);
 		queue_append(initial_q, new_process);
 	}
-	Process* proc;
+
 	/*
 	Por cada unidad de tiempo el scheduler debe realizar:
 	1. Actualizar los procesos que cumplan su I/O burst de WAITING a READY. CHECK
@@ -152,78 +154,61 @@ int main(int argc, char const *argv[])
 	4. Ingresar un proceso a la CPU si corresponde, esto implica cambiar su estado de READY a RUNNING. CHECK 
 	*/
 
-	curr_quantum = q;
-	while (1)
+	while (finished_q -> count != input_file -> len)
 	{
 		printf("=============== tiempo de ejecución: %i ==================\n", t);
 		// Actualizar los procesos que cumplan su I/O burst de WAITING a READY.
-		queue_update_waiting(initial_q);
 		queue_update_waiting(high_prio_q);
 		queue_update_waiting(mid_prio_q);
 		queue_update_waiting(low_prio_q);
 
-		//En caso de existir un proceso en estado RUNING, actualizar su estado segun corresponda.
+		//En caso de existir un proceso en estado RUNNING, actualizar su estado segun corresponda.
 		update_running_process();
 
-		// --------- insertar cada proceso en la cola correspondiente ------------------------
-		if (initial_q ->count != 0) {
-			printf("initial queue: ");
-			queue_print(initial_q);
-			for (int i = 0; i < initial_q -> count; i++) 
-			{
-				proc = queue_get(initial_q, i);
-				//printf("%s\n", proc ->name);
-				if (proc -> priority == 2 )
-				{
-					//printf("prioridad proceso: 2\n");
-					queue_start_time(initial_q, t, high_prio_q, i);
-				}
-				else if (proc -> priority == 1 )
-				{
-					//printf("prioridad proceso: 1\n");
-					queue_start_time(initial_q, t, mid_prio_q, i);
-				}
-				else
-				{
-					//printf("prioridad proceso: 0\n");
-					queue_start_time(initial_q, t, low_prio_q, i);
-					printf("low priority queue: ");
-					queue_print(low_prio_q);
-				}
-			}
-		}
+		// Ingresamos procesos a la cola de alta prioridad dependiendo de su start_time
+		queue_start_time(initial_q, t, high_prio_q);
+
 		queue_aging(mid_prio_q, t, high_prio_q);
 		queue_aging(low_prio_q, t, high_prio_q);
+
 		// ------------ ACÁ DEFINO CUAL PROCESO ENTRA EN LA CPU ------------------
 		// primero debo recorrer la cola high, luego la mid y luego la low
 		// si hay uno listo en la cola 1, ingresarlo
+		int new_cpu_process = 0;
 		if (!cpu_process)
 		{
 			cpu_process = queue_fifo(high_prio_q);
+			if (cpu_process) new_cpu_process = 1;
+			curr_quantum = high_prio_q -> quantum;
 		}
 		// si no hay uno listo en la cola 1 y si hay uno listo en la cola 2, ingresarlo
 		if (!cpu_process)
 		{
 			cpu_process = queue_fifo(mid_prio_q);
+			if (cpu_process) new_cpu_process = 1;
+			curr_quantum = mid_prio_q -> quantum;
 		}
 		// si no hay uno listo en la cola 2 y si hay uno listo en la cola 3, ingresarlo
 		if (!cpu_process)
 		{
+			// SJF siempre encuentra uno, y los empates los saca por FIFO por como está implementado
 			cpu_process = queue_sjf(low_prio_q);
-			if (!cpu_process) // si es que hay empate en SJF, lo hacemos por fifo
-			{
-				cpu_process = queue_fifo(low_prio_q);
-			}
+			if (cpu_process) new_cpu_process = 1;
+			curr_quantum = 0;
 		}
-		if (cpu_process)
-		{
-			cpu_process->status = RUNNING;
+		if (new_cpu_process)
+		{	
+			if (cpu_process -> times_chosen_by_cpu == 0)
+			{
+				cpu_process -> response_time = t - cpu_process -> start_time;
+			}
+			cpu_process -> times_chosen_by_cpu += 1;
 			printf("%s está RUNNING en la CPU\n", cpu_process->name);
 			printf("ciclos proceso %i: %i\n", cpu_process->pid, cpu_process->cycles);
 			printf("ráfaga proceso %i: %i\n", cpu_process->pid, cpu_process->curr_wait);
 			printf("quantum proceso %i: %i\n", cpu_process->pid, curr_quantum);
 		}
-		//printf("cpu status: %i\n", cpu_process -> status);
+
 		if (high_prio_q -> count > 0)
 		{
 			printf("high priority queue: ");
@@ -239,13 +224,17 @@ int main(int argc, char const *argv[])
 			printf("low priority queue: ");
 			queue_print(low_prio_q);
 		}
-		if (finished_q -> count == input_file->len)
-		{
-			break;
-		}
 		sleep(0.1);
 		t++;
 	}
+
+	FILE *file_output = fopen(output_file, "w");
+	for (int i = 0; i < finished_q -> count; i++)
+	{
+		Process* p = queue_get(finished_q, i);
+		fprintf(file_output, "%s,%d,%d,%d,%d,%d\n", p->name, p->times_chosen_by_cpu, p->times_interrupted, p->turnaround_time, p->response_time, p->waiting_time);
+	}
+	fclose(file_output);
 
 	queue_destroy(initial_q);
 	queue_destroy(high_prio_q);

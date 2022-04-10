@@ -55,13 +55,17 @@ Process* queue_fifo(Queue* queue);
 /** Obtiene un proceso de la lista por SJF */
 Process* queue_sjf(Queue* queue);
 
-/** Obtiene los indices de los procesos que tienen su start_time = current_time */
-void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue, int index);
+/** Mueve los procesos de from_queue que tienen su start_time = current_time a to_queue */
+void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue);
 
 /** Obtiene los indices de los procesos que tienen su current_time - start_time % aging = 0 */
 void queue_aging(Queue* from_queue, int current_time, Queue* to_queue);
 
+/** Entrega 1 si el proceso debe realizar aging en t = current_time */
 int cpu_aging(Process* p, int current_time);
 
 /** Actualiza el estado de WAITING a READY de los procesos en la cola si completaron su tiempo de espera*/
 void queue_update_waiting(Queue* queue);
+
+/** Aumenta el contador de waiting_time de todos los proceso en estado READY */
+void queue_waiting_time_on_ready(Queue* queue);
