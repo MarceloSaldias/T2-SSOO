@@ -56,8 +56,9 @@ void update_running_process()
 	{
 		cpu_process -> status = WAITING;
 		cpu_process -> curr_wait = cpu_process -> wait;
-		// Si está en la cola 1, 2 o tuvo su aging mientras estuvo en ejecución
-		if (cpu_process -> priority == 2 || cpu_process -> priority == 1 || running_aging == 1)
+		// Si está en la cola 1 o 2, o bien,
+		// 		tuvo su aging mientras estuvo en ejecución y está en las colas 2 o 3
+		if (cpu_process -> priority == 2 || cpu_process -> priority == 1 || (running_aging == 1 && (cpu_process -> priority == 1 || cpu_process -> priority == 0)))
 		{
 			cpu_process -> priority = 2;
 			queue_append(high_prio_q, cpu_process);
@@ -76,8 +77,9 @@ void update_running_process()
 	{
 		cpu_process -> times_interrupted += 1;
 		cpu_process -> status = READY;
-		// Si tuvo su aging en ejecución, pasa a la cola de alta prioridad
-		if (running_aging == 1)
+		// Si tuvo su aging en ejecución, y está en las colas 2 o 3
+		//		pasa a la cola de alta prioridad
+		if ((running_aging == 1 && (cpu_process -> priority == 1 || cpu_process -> priority == 0)))
 		{
 			cpu_process -> priority = 2;
 			queue_append(high_prio_q, cpu_process);
