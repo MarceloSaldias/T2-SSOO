@@ -232,7 +232,6 @@ Process* queue_fifo(Queue* queue)
     selected_process = queue_get(queue, i);
     if (selected_process -> status == READY)
     {
-      printf("%s pasará de READY a RUNNING\n", selected_process -> name);
       return queue_pop(queue, i);
     }
   }
@@ -277,7 +276,6 @@ void queue_start_time(Queue* from_queue, int current_time, Queue* to_queue)
       if (p -> start_time == current_time)
       {
         queue_append(to_queue, queue_pop(from_queue, i));
-        printf("proceso %i agregado a queue de prioridad %i\n", p->pid, p->priority);
         break;
       }
     }
@@ -302,7 +300,6 @@ void queue_aging(Queue* from_queue, int current_time, Queue* to_queue)
       Process* p = queue_get(from_queue, i);
       if ((current_time - p->start_time) % p->aging == 0)
       {
-        printf("%s cumplió sus ciclo aging, pasa de cola de prioridad %i, a cola de prioridad 2\n", p->name, p->priority);
         queue_append(to_queue, queue_pop(from_queue, i));
         break;
       }
@@ -315,7 +312,6 @@ int cpu_aging(Process* p, int current_time)
 {
   if ((current_time - p->start_time) % p->aging == 0)
   {
-    printf("%s cumplió sus ciclo aging, pasará de CPU, a cola de prioridad %d cuando termine de ejecutarse\n", p->name, p->priority);
     return 1;
   }
   return 0;
@@ -335,7 +331,6 @@ void queue_update_waiting(Queue* queue)
       {
         p->status = READY;
         p->curr_waiting_delay = p->waiting_delay;
-        printf("%s pasó de WAITING a READY luego de %i desde que inició\n", p->name, p->waiting_delay);
       }
     }
   }

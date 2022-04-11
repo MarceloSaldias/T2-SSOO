@@ -46,7 +46,6 @@ void update_running_process()
 	// Si terminó su ejecución
 	if (cpu_process -> cycles == 0)
 	{
-		printf("%s terminó su ejecución\n", cpu_process ->name);
 		cpu_process -> status = FINISHED;
 		cpu_process -> turnaround_time = t - cpu_process -> start_time;
 		// Lo añadimos a la cola de procesos terminados
@@ -55,7 +54,6 @@ void update_running_process()
 	}
 	else if (cpu_process -> curr_wait == 0)
 	{
-		printf("%s terminó su ráfaga\n", cpu_process ->name);
 		cpu_process -> status = WAITING;
 		cpu_process -> curr_wait = cpu_process -> wait;
 		// Si está en la cola 1, 2 o tuvo su aging mientras estuvo en ejecución
@@ -76,7 +74,6 @@ void update_running_process()
 	// Si me quedé sin quantum de ejecución y estoy en las colas 1 o 2
 	else if (cpu_process -> priority != 0 && cpu_process -> curr_wait > 0 && curr_quantum == 0)
 	{
-		printf("%s terminó su quantum\n", cpu_process ->name);
 		cpu_process -> times_interrupted += 1;
 		cpu_process -> status = READY;
 		// Si tuvo su aging en ejecución, pasa a la cola de alta prioridad
@@ -124,14 +121,6 @@ int main(int argc, char const *argv[])
 	// solo para almacenar los procesos antes de entrar al MLFQ
 	for (int i = 0; i < input_file->len; ++i)
 	{
-		printf("==================================\n");
-		printf("nombre proceso: %s\n", input_file->lines[i][0]);
-		printf("pid: %s\n", input_file->lines[i][1]);
-		printf("tiempo de inicio: %s\n", input_file->lines[i][2]);
-		printf("ciclos: %s\n", input_file->lines[i][3]);
-		printf("ciclos por ráfaga: %s\n", input_file->lines[i][4]);
-		printf("cantidad de tiempo en waiting: %s\n", input_file->lines[i][5]);
-		printf("tiempo de envejecimiento: %s\n", input_file->lines[i][6]);
 		Process* new_process = process_init_array(input_file->lines[i]);
 		queue_append(initial_q, new_process);
 	}
@@ -152,7 +141,6 @@ int main(int argc, char const *argv[])
 
 	while (finished_q -> count != input_file -> len)
 	{
-		printf("=============== tiempo de ejecución: %i ==================\n", t);
 		// Actualizar los procesos que cumplan su I/O burst de WAITING a READY.
 		queue_update_waiting(high_prio_q);
 		queue_update_waiting(mid_prio_q);
@@ -208,31 +196,12 @@ int main(int argc, char const *argv[])
 				cpu_process -> response_time = t - cpu_process -> start_time;
 			}
 			cpu_process -> times_chosen_by_cpu += 1;
-			printf("%s está RUNNING en la CPU\n", cpu_process->name);
-			printf("ciclos proceso %i: %i\n", cpu_process->pid, cpu_process->cycles);
-			printf("ráfaga proceso %i: %i\n", cpu_process->pid, cpu_process->curr_wait);
-			printf("quantum proceso %i: %i\n", cpu_process->pid, curr_quantum);
 		}
 
 		queue_waiting_time_on_ready(high_prio_q);
 		queue_waiting_time_on_ready(mid_prio_q);
 		queue_waiting_time_on_ready(low_prio_q);
 
-		if (high_prio_q -> count > 0)
-		{
-			printf("high priority queue: ");
-			queue_print(high_prio_q);
-		}
-		if (mid_prio_q ->count > 0)
-		{
-			printf("mid priority queue: ");
-			queue_print(mid_prio_q);
-		}
-		if (low_prio_q -> count > 0)
-		{
-			printf("low priority queue: ");
-			queue_print(low_prio_q);
-		}
 		sleep(0.1);
 		t++;
 	}
