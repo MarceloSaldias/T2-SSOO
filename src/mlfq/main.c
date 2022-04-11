@@ -25,10 +25,6 @@ int curr_quantum = -1;
 // Flag para ver si le toca aging mientras está en ejecución
 int running_aging = 0;
 
-/*
-POR IMPLEMENTAR:
-1.  Todo lo del output
-*/
 void update_running_process()
 {
 	// Si no hay ningun proceso corriendo
@@ -178,23 +174,32 @@ int main(int argc, char const *argv[])
 		if (!cpu_process)
 		{
 			cpu_process = queue_fifo(high_prio_q);
-			if (cpu_process) new_cpu_process = 1;
-			curr_quantum = high_prio_q -> quantum;
+			if (cpu_process)
+			{
+				new_cpu_process = 1;
+				curr_quantum = high_prio_q -> quantum;
+			}
 		}
 		// si no hay uno listo en la cola 1 y si hay uno listo en la cola 2, ingresarlo
 		if (!cpu_process)
 		{
 			cpu_process = queue_fifo(mid_prio_q);
-			if (cpu_process) new_cpu_process = 1;
-			curr_quantum = mid_prio_q -> quantum;
+			if (cpu_process)
+			{
+				new_cpu_process = 1;
+				curr_quantum = mid_prio_q -> quantum;
+			}
 		}
 		// si no hay uno listo en la cola 2 y si hay uno listo en la cola 3, ingresarlo
 		if (!cpu_process)
 		{
 			// SJF siempre encuentra uno, y los empates los saca por FIFO por como está implementado
 			cpu_process = queue_sjf(low_prio_q);
-			if (cpu_process) new_cpu_process = 1;
-			curr_quantum = 0;
+			if (cpu_process)
+			{
+				new_cpu_process = 1;
+				curr_quantum = 0;
+			}
 		}
 		if (new_cpu_process)
 		{	
@@ -208,6 +213,10 @@ int main(int argc, char const *argv[])
 			printf("ráfaga proceso %i: %i\n", cpu_process->pid, cpu_process->curr_wait);
 			printf("quantum proceso %i: %i\n", cpu_process->pid, curr_quantum);
 		}
+
+		queue_waiting_time_on_ready(high_prio_q);
+		queue_waiting_time_on_ready(mid_prio_q);
+		queue_waiting_time_on_ready(low_prio_q);
 
 		if (high_prio_q -> count > 0)
 		{

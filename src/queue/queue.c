@@ -350,13 +350,6 @@ void queue_waiting_time_on_ready(Queue* queue)
     if (p -> status == READY)
     {
       p->waiting_time += 1;
-      p->curr_waiting_delay -= 1;
-      if (p->curr_waiting_delay == 0)
-      {
-        p->status = READY;
-        p->curr_waiting_delay = p->waiting_delay;
-        printf("%s pasó de WAITING a READY luego de %i desde que inició\n", p->name, p->waiting_delay);
-      }
     }
   }
 }
